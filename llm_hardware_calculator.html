@@ -14,12 +14,13 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
             background: 
-                linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
-                url('jungle-background.jpg');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
+                linear-gradient(135deg, rgba(0, 50, 0, 0.9) 0%, rgba(0, 30, 0, 0.9) 25%, rgba(10, 40, 10, 0.9) 50%, rgba(0, 35, 0, 0.9) 75%, rgba(5, 25, 5, 0.9) 100%),
+                url('jungle-background.jpg'),
+                linear-gradient(135deg, #0d4d0d 0%, #1a5c1a 25%, #0f4d0f 50%, #1a4d1a 75%, #0a3d0a 100%);
+            background-size: cover, cover, cover;
+            background-position: center, center, center;
+            background-attachment: fixed, fixed, fixed;
+            background-repeat: no-repeat, no-repeat, no-repeat;
             min-height: 100vh;
             padding: 20px;
             color: #e0e0e0;
@@ -397,24 +398,40 @@
                 gap: 20px;
             }
             
+            .header {
+                padding: 20px;
+                position: relative;
+            }
+            
             .header h1 {
-                font-size: 2.5em;
+                font-size: 2em;
+                margin-top: 60px;
             }
 
             .header p {
-                font-size: 1.1em;
+                font-size: 1em;
             }
 
             .language-selector {
-                position: static;
-                justify-content: center;
-                margin-bottom: 20px;
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                gap: 5px;
+            }
+
+            .lang-btn {
+                padding: 6px 12px;
+                font-size: 12px;
             }
 
             .logo-container {
-                position: static;
-                justify-content: center;
-                margin-bottom: 20px;
+                position: absolute;
+                top: 10px;
+                left: 10px;
+            }
+
+            .logo {
+                width: 80px;
             }
 
             .logo-text {
@@ -422,34 +439,57 @@
             }
 
             .input-section, .results-section {
-                padding: 24px;
+                padding: 20px;
             }
         }
 
         @media (max-width: 480px) {
             body {
-                padding: 12px;
+                padding: 10px;
             }
 
             .header {
-                padding: 24px;
+                padding: 15px;
             }
 
             .header h1 {
-                font-size: 2em;
+                font-size: 1.5em;
+                margin-top: 50px;
+            }
+
+            .header p {
+                font-size: 0.9em;
+            }
+
+            .logo {
+                width: 60px;
+            }
+
+            .lang-btn {
+                padding: 4px 8px;
+                font-size: 10px;
             }
 
             .input-section, .results-section {
-                padding: 20px;
+                padding: 15px;
             }
 
             .footer-logo-link {
                 flex-direction: column;
-                gap: 12px;
+                gap: 10px;
+                padding: 15px;
             }
 
             .footer-logo {
-                width: 100px;
+                width: 80px;
+            }
+
+            .footer-description {
+                font-size: 14px;
+            }
+
+            .footer-text {
+                font-size: 12px;
             }
         }
 
@@ -512,7 +552,13 @@
         <div class="header">
             <div class="logo-container">
                 <a href="https://smartcamp.ai/" target="_blank" class="logo-link">
-                    <img src="smartcamp-logo.svg" alt="Smart Camp AI" class="logo" />
+                    <svg class="logo" viewBox="0 0 630 200" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="20" y="20" width="380" height="160" fill="#ffffff" rx="8" ry="8"/>
+                        <rect x="420" y="0" width="210" height="200" fill="#2e5aa8" rx="8" ry="8"/>
+                        <text x="40" y="85" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#2e5aa8" letter-spacing="3px">SMART</text>
+                        <text x="40" y="145" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#2e5aa8" letter-spacing="3px">CAMP</text>
+                        <text x="450" y="125" font-family="Arial, sans-serif" font-size="64" font-weight="bold" fill="#ffffff">.AI</text>
+                    </svg>
                     <span class="logo-text">Powered by Smart Camp AI</span>
                 </a>
             </div>
@@ -589,7 +635,13 @@
 
         <div class="footer">
             <a href="https://smartcamp.ai/" target="_blank" class="footer-logo-link">
-                <img src="smartcamp-logo.svg" alt="Smart Camp AI" class="footer-logo" />
+                <svg class="footer-logo" viewBox="0 0 630 200" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="20" y="20" width="380" height="160" fill="#ffffff" rx="8" ry="8"/>
+                    <rect x="420" y="0" width="210" height="200" fill="#2e5aa8" rx="8" ry="8"/>
+                    <text x="40" y="85" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#2e5aa8" letter-spacing="3px">SMART</text>
+                    <text x="40" y="145" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#2e5aa8" letter-spacing="3px">CAMP</text>
+                    <text x="450" y="125" font-family="Arial, sans-serif" font-size="64" font-weight="bold" fill="#ffffff">.AI</text>
+                </svg>
                 <div>
                     <p class="footer-description" id="footer-description">Zaawansowane narzędzia AI dla Twojego biznesu</p>
                     <p class="footer-text" id="footer-text">Odwiedź smartcamp.ai aby poznać więcej rozwiązań</p>
