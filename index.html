@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Sprzętu dla LLM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #111111 25%, #1a1a1a 50%, #0f0f0f 75%, #080808 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(64, 64, 64, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(96, 96, 96, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(128, 128, 128, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(64, 64, 64, 0.3);
+            color: #e0e0e0;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            border-radius: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        .logo-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+            filter: brightness(0.9);
+        }
+
+        .logo-text {
+            color: #e0e0e0;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .lang-btn {
+            background: rgba(32, 32, 32, 0.8);
+            color: #c0c0c0;
+            border: 1px solid rgba(64, 64, 64, 0.5);
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        .lang-btn:hover {
+            background: rgba(48, 48, 48, 0.9);
+            border-color: rgba(96, 96, 96, 0.7);
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+
+        .lang-btn.active {
+            background: rgba(64, 64, 128, 0.8);
+            border-color: rgba(80, 80, 160, 1);
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(64, 64, 128, 0.4);
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #f0f0f0 0%, #c0c0c0 50%, #a0a0a0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.7;
+            font-weight: 300;
+            letter-spacing: 0.01em;
+            color: #b0b0b0;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .input-section, .results-section {
+            background: rgba(24, 24, 24, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(64, 64, 64, 0.3);
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            margin-bottom: 28px;
+            color: #e0e0e0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 500;
+            color: rgba(224, 224, 224, 0.9);
+            font-size: 1.1em;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(32, 32, 32, 0.8);
+            border: 1px solid rgba(64, 64, 64, 0.5);
+            border-radius: 16px;
+            font-size: 16px;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        select::placeholder, input::placeholder {
+            color: rgba(160, 160, 160, 0.7);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: rgba(96, 96, 128, 0.8);
+            box-shadow: 0 0 0 4px rgba(96, 96, 128, 0.2);
+            background: rgba(48, 48, 48, 0.9);
+        }
+
+        select option {
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 10px;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #404080 0%, #505090 100%);
+            color: #e0e0e0;
+            border: none;
+            padding: 18px 24px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            box-shadow: 0 4px 20px rgba(64, 64, 128, 0.4);
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(64, 64, 128, 0.6);
+            background: linear-gradient(135deg, #505090 0%, #6060a0 100%);
+            color: #ffffff;
+        }
+
+        .calculate-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(64, 64, 128, 0.4);
+        }
+
+        .result-card {
+            background: rgba(32, 32, 32, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(64, 64, 64, 0.4);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(128, 128, 128, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+            border-color: rgba(96, 96, 96, 0.6);
+        }
+
+        .result-card:hover::before {
+            left: 100%;
+        }
+
+        .result-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-value {
+            font-size: 1.1em;
+            color: rgba(192, 192, 192, 0.9);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .recommendation {
+            background: rgba(32, 96, 48, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(64, 128, 64, 0.4);
+            color: #e0e0e0;
+            padding: 24px;
+            border-radius: 20px;
+            margin-top: 24px;
+            box-shadow: 0 4px 20px rgba(32, 96, 48, 0.3);
+        }
+
+        .recommendation h3 {
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+
+        .recommendation-item {
+            background: rgba(48, 48, 48, 0.6);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(80, 80, 80, 0.4);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .recommendation-item:hover {
+            background: rgba(64, 64, 64, 0.8);
+            border-color: rgba(96, 96, 96, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .recommendation-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .price-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-left: 12px;
+            box-shadow: 0 2px 10px rgba(238, 90, 82, 0.3);
+        }
+
+        .warning {
+            background: rgba(128, 96, 32, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(160, 120, 40, 0.4);
+            color: #e0c080;
+            padding: 20px;
+            border-radius: 16px;
+            margin-top: 20px;
+            box-shadow: 0 4px 20px rgba(128, 96, 32, 0.3);
+        }
+
+        /* Floating particles animation */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(128, 128, 128, 0.3);
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2.5em;
+            }
+
+            .header p {
+                font-size: 1.1em;
+            }
+
+            .language-selector {
+                position: static;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+
+            .logo-container {
+                position: static;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+
+            .logo-text {
+                display: none;
+            }
+
+            .input-section, .results-section {
+                padding: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 24px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .input-section, .results-section {
+                padding: 20px;
+            }
+
+            .footer-logo-link {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .footer-logo {
+                width: 100px;
+            }
+        }
+
+        /* Footer styles */
+        .footer {
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(64, 64, 64, 0.3);
+            color: #e0e0e0;
+            padding: 30px;
+            text-align: center;
+            border-radius: 24px;
+            margin-top: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        .footer-logo-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            padding: 12px 24px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .footer-logo-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .footer-logo {
+            width: 140px;
+            height: auto;
+            filter: brightness(0.9);
+        }
+
+        .footer-text {
+            color: #b0b0b0;
+            font-size: 14px;
+            margin: 0;
+            opacity: 0.8;
+        }
+
+        .footer-description {
+            color: #c0c0c0;
+            font-size: 16px;
+            font-weight: 500;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <a href="https://smartcamp.ai/" target="_blank" class="logo-link">
+                    <svg class="logo" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Background rectangles -->
+                        <rect x="20" y="20" width="360" height="160" fill="#ffffff" rx="8"/>
+                        <rect x="240" y="0" width="160" height="200" fill="#2e5aa8" rx="8"/>
+                        
+                        <!-- SMART CAMP text -->
+                        <text x="40" y="80" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#2e5aa8" letter-spacing="2px">SMART</text>
+                        <text x="40" y="130" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#2e5aa8" letter-spacing="2px">CAMP</text>
+                        
+                        <!-- .AI text -->
+                        <text x="260" y="120" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#ffffff">.AI</text>
+                    </svg>
+                    <span class="logo-text">Powered by Smart Camp AI</span>
+                </a>
+            </div>
+            <div class="language-selector">
+                <button class="lang-btn active" onclick="changeLanguage('pl')">🇵🇱 Polski</button>
+                <button class="lang-btn" onclick="changeLanguage('en')">🇺🇸 English</button>
+                <button class="lang-btn" onclick="changeLanguage('zh')">🇨🇳 中文</button>
+            </div>
+            <h1 id="main-title">🚀 Kalkulator Sprzętu dla LLM</h1>
+            <p id="main-subtitle">Znajdź idealną konfigurację sprzętu dla Twojego modelu językowego</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title" id="params-title">📋 Parametry Modelu</h2>
+                
+                <div class="form-group">
+                    <label for="modelSize" id="model-size-label">Rozmiar modelu:</label>
+                    <select id="modelSize">
+                        <option value="7">7B parametrów</option>
+                        <option value="8">8B parametrów</option>
+                        <option value="13">13B parametrów</option>
+                        <option value="24">24B parametrów</option>
+                        <option value="30">30B parametrów</option>
+                        <option value="70">70B parametrów</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantization" id="quantization-label">Kwantyzacja:</label>
+                    <select id="quantization">
+                        <option value="16">FP16 (16-bit)</option>
+                        <option value="8">INT8 (8-bit)</option>
+                        <option value="4">Q4 (4-bit)</option>
+                        <option value="3">Q3 (3-bit)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="targetSpeed" id="target-speed-label">Docelowa prędkość (tokeny/s):</label>
+                    <input type="number" id="targetSpeed" value="20" min="1" max="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="contextLength" id="context-length-label">Długość kontekstu:</label>
+                    <select id="contextLength">
+                        <option value="2048" id="context-2k">2K tokenów</option>
+                        <option value="4096" id="context-4k">4K tokenów</option>
+                        <option value="8192" id="context-8k">8K tokenów</option>
+                        <option value="16384" id="context-16k">16K tokenów</option>
+                        <option value="32768" id="context-32k">32K tokenów</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="maxBudget" id="max-budget-label">Maksymalny budżet (€/miesiąc):</label>
+                    <input type="number" id="maxBudget" value="30" min="10" max="500">
+                </div>
+
+                <button class="calculate-btn" id="calculate-btn" onclick="calculateRequirements()">
+                    🔍 Oblicz Wymagania
+                </button>
+            </div>
+
+            <div class="results-section">
+                <h2 class="section-title" id="results-title">📊 Wyniki Obliczeń</h2>
+                <div id="results">
+                    <p style="text-align: center; color: #6c757d; margin-top: 50px; font-size: 1.1em;" id="initial-message">
+                        Wybierz parametry i kliknij "Oblicz Wymagania"
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <a href="https://smartcamp.ai/" target="_blank" class="footer-logo-link">
+                <svg class="footer-logo" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Background rectangles -->
+                    <rect x="20" y="20" width="360" height="160" fill="#ffffff" rx="8"/>
+                    <rect x="240" y="0" width="160" height="200" fill="#2e5aa8" rx="8"/>
+                    
+                    <!-- SMART CAMP text -->
+                    <text x="40" y="80" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#2e5aa8" letter-spacing="2px">SMART</text>
+                    <text x="40" y="130" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#2e5aa8" letter-spacing="2px">CAMP</text>
+                    
+                    <!-- .AI text -->
+                    <text x="260" y="120" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#ffffff">.AI</text>
+                </svg>
+                <div>
+                    <p class="footer-description" id="footer-description">Zaawansowane narzędzia AI dla Twojego biznesu</p>
+                    <p class="footer-text" id="footer-text">Odwiedź smartcamp.ai aby poznać więcej rozwiązań</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Translations object
+        const translations = {
+            pl: {
+                mainTitle: "🚀 Kalkulator Sprzętu dla LLM",
+                mainSubtitle: "Znajdź idealną konfigurację sprzętu dla Twojego modelu językowego",
+                paramsTitle: "📋 Parametry Modelu",
+                modelSizeLabel: "Rozmiar modelu:",
+                quantizationLabel: "Kwantyzacja:",
+                targetSpeedLabel: "Docelowa prędkość (tokeny/s):",
+                contextLengthLabel: "Długość kontekstu:",
+                maxBudgetLabel: "Maksymalny budżet (€/miesiąc):",
+                calculateBtn: "🔍 Oblicz Wymagania",
+                resultsTitle: "📊 Wyniki Obliczeń",
+                initialMessage: "Wybierz parametry i kliknij \"Oblicz Wymagania\"",
+                modelOptions: {
+                    "7": "7B parametrów",
+                    "8": "8B parametrów", 
+                    "13": "13B parametrów",
+                    "24": "24B parametrów",
+                    "30": "30B parametrów",
+                    "70": "70B parametrów"
+                },
+                contextOptions: {
+                    "2048": "2K tokenów",
+                    "4096": "4K tokenów",
+                    "8192": "8K tokenów",
+                    "16384": "16K tokenów",
+                    "32768": "32K tokenów"
+                },
+                requirementsFor: "🎯 Wymagania dla",
+                ram: "💾 RAM:",
+                minVram: "🎮 Min. VRAM:",
+                bandwidth: "⚡ Przepustowość:",
+                quantization: "🔧 Kwantyzacja:",
+                localRecommendations: "💻 Rekomendacje Sprzętu Lokalnego",
+                                 vpsRecommendations: "☁️ Rekomendacje VPS (do",
+                 monthSuffix: "/mies",
+                budgetConfig: "Budżetowa konfiguracja",
+                mediumConfig: "Średnia konfiguracja", 
+                highConfig: "Wysoka konfiguracja",
+                expectedSpeed: "Przewidywana prędkość:",
+                performance: "Wydajność:",
+                                 noVpsOptions: "⚠️ Brak dostępnych opcji VPS w podanym budżecie dla tego modelu",
+                 highRamWarning: "⚠️ Uwaga: Model wymaga dużo pamięci RAM. Rozważ użycie mniejszego modelu lub lepszej kwantyzacji.",
+                 tokensPerSecond: "tok/s",
+                 gb: "GB",
+                 gbPerSecond: "GB/s",
+                 bit: "-bit",
+                 gpu: "GPU:",
+                 vram: "VRAM",
+                 euro: "€",
+                 quantizationOptions: {
+                     "16": "FP16 (16-bit)",
+                     "8": "INT8 (8-bit)", 
+                     "4": "Q4 (4-bit)",
+                     "3": "Q3 (3-bit)"
+                 },
+                 footerDescription: "Zaawansowane narzędzia AI dla Twojego biznesu",
+                 footerText: "Odwiedź smartcamp.ai aby poznać więcej rozwiązań"
+            },
+            en: {
+                mainTitle: "🚀 LLM Hardware Calculator",
+                mainSubtitle: "Find the perfect hardware configuration for your language model",
+                paramsTitle: "📋 Model Parameters",
+                modelSizeLabel: "Model size:",
+                quantizationLabel: "Quantization:",
+                targetSpeedLabel: "Target speed (tokens/s):",
+                contextLengthLabel: "Context length:",
+                maxBudgetLabel: "Maximum budget (€/month):",
+                calculateBtn: "🔍 Calculate Requirements",
+                resultsTitle: "📊 Calculation Results",
+                initialMessage: "Select parameters and click \"Calculate Requirements\"",
+                modelOptions: {
+                    "7": "7B parameters",
+                    "8": "8B parameters",
+                    "13": "13B parameters", 
+                    "24": "24B parameters",
+                    "30": "30B parameters",
+                    "70": "70B parameters"
+                },
+                contextOptions: {
+                    "2048": "2K tokens",
+                    "4096": "4K tokens",
+                    "8192": "8K tokens", 
+                    "16384": "16K tokens",
+                    "32768": "32K tokens"
+                },
+                requirementsFor: "🎯 Requirements for",
+                ram: "💾 RAM:",
+                minVram: "🎮 Min. VRAM:",
+                bandwidth: "⚡ Bandwidth:",
+                quantization: "🔧 Quantization:",
+                localRecommendations: "💻 Local Hardware Recommendations",
+                                 vpsRecommendations: "☁️ VPS Recommendations (up to",
+                 monthSuffix: "/month",
+                budgetConfig: "Budget configuration",
+                mediumConfig: "Medium configuration",
+                highConfig: "High-end configuration",
+                expectedSpeed: "Expected speed:",
+                performance: "Performance:",
+                                 noVpsOptions: "⚠️ No VPS options available within the specified budget for this model",
+                 highRamWarning: "⚠️ Warning: Model requires a lot of RAM. Consider using a smaller model or better quantization.",
+                 tokensPerSecond: "tok/s",
+                 gb: "GB",
+                 gbPerSecond: "GB/s",
+                 bit: "-bit",
+                 gpu: "GPU:",
+                 vram: "VRAM",
+                 euro: "€",
+                 quantizationOptions: {
+                     "16": "FP16 (16-bit)",
+                     "8": "INT8 (8-bit)", 
+                     "4": "Q4 (4-bit)",
+                     "3": "Q3 (3-bit)"
+                 },
+                 footerDescription: "Advanced AI tools for your business",
+                 footerText: "Visit smartcamp.ai to discover more solutions"
+            },
+            zh: {
+                mainTitle: "🚀 大语言模型硬件计算器",
+                mainSubtitle: "为您的语言模型找到完美的硬件配置",
+                paramsTitle: "📋 模型参数",
+                modelSizeLabel: "模型大小:",
+                quantizationLabel: "量化:",
+                targetSpeedLabel: "目标速度 (tokens/s):",
+                contextLengthLabel: "上下文长度:",
+                maxBudgetLabel: "最大预算 (€/月):",
+                calculateBtn: "🔍 计算需求",
+                resultsTitle: "📊 计算结果",
+                initialMessage: "选择参数并点击\"计算需求\"",
+                modelOptions: {
+                    "7": "70亿参数",
+                    "8": "80亿参数",
+                    "13": "130亿参数",
+                    "24": "240亿参数", 
+                    "30": "300亿参数",
+                    "70": "700亿参数"
+                },
+                contextOptions: {
+                    "2048": "2K tokens",
+                    "4096": "4K tokens",
+                    "8192": "8K tokens",
+                    "16384": "16K tokens", 
+                    "32768": "32K tokens"
+                },
+                requirementsFor: "🎯 需求配置:",
+                ram: "💾 内存:",
+                minVram: "🎮 最小显存:",
+                bandwidth: "⚡ 带宽:",
+                quantization: "🔧 量化:",
+                localRecommendations: "💻 本地硬件推荐",
+                                 vpsRecommendations: "☁️ VPS推荐 (最高",
+                 monthSuffix: "/月",
+                budgetConfig: "预算配置",
+                mediumConfig: "中端配置",
+                highConfig: "高端配置", 
+                expectedSpeed: "预期速度:",
+                performance: "性能:",
+                                 noVpsOptions: "⚠️ 在指定预算内没有适合此模型的VPS选项",
+                 highRamWarning: "⚠️ 警告：模型需要大量内存。考虑使用更小的模型或更好的量化。",
+                 tokensPerSecond: "tok/s",
+                 gb: "GB",
+                 gbPerSecond: "GB/s",
+                 bit: "-bit",
+                 gpu: "GPU:",
+                 vram: "显存",
+                 euro: "€",
+                 quantizationOptions: {
+                     "16": "FP16 (16位)",
+                     "8": "INT8 (8位)", 
+                     "4": "Q4 (4位)",
+                     "3": "Q3 (3位)"
+                 },
+                 footerDescription: "为您的企业提供先进的AI工具",
+                 footerText: "访问 smartcamp.ai 了解更多解决方案"
+            }
+        };
+
+        let currentLanguage = 'pl';
+
+        // Baza danych popularnych modeli
+        const modelDatabase = {
+            7: { name: "Llama 2 7B", baseRAM: 14 },
+            8: { name: "Llama 3.1 8B", baseRAM: 16 },
+            13: { name: "Llama 2 13B", baseRAM: 26 },
+            24: { name: "Qwen2.5 24B", baseRAM: 48 },
+            30: { name: "Code Llama 30B", baseRAM: 60 },
+            70: { name: "Llama 2 70B", baseRAM: 140 }
+        };
+
+        // Współczynniki kwantyzacji
+        const quantizationFactors = {
+            16: 1.0,    // FP16
+            8: 0.5,     // INT8
+            4: 0.25,    // Q4
+            3: 0.19     // Q3
+        };
+
+        // VPS providers
+        const vpsProviders = [
+            { name: "Hetzner Cloud", gpu: "RTX 4060", vram: 16, price: 25, performance: 85 },
+            { name: "OVH Public Cloud", gpu: "RTX 3080", vram: 12, price: 28, performance: 80 },
+            { name: "Scaleway", gpu: "RTX 4070", vram: 12, price: 22, performance: 82 },
+            { name: "DigitalOcean", gpu: "RTX A4000", vram: 16, price: 35, performance: 75 },
+            { name: "Vultr", gpu: "RTX 3070", vram: 8, price: 18, performance: 70 }
+        ];
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Update active language button
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update HTML lang attribute
+            document.documentElement.lang = lang;
+            
+            // Update page title
+            document.title = translations[lang].mainTitle.replace('🚀 ', '');
+            
+            // Update all text content
+            updateLanguageContent();
+            
+            // Recalculate to update results in new language
+            if (document.getElementById('results').innerHTML.includes('result-card')) {
+                calculateRequirements();
+            }
+        }
+
+        function updateLanguageContent() {
+            const t = translations[currentLanguage];
+            
+            // Update main header
+            document.getElementById('main-title').textContent = t.mainTitle;
+            document.getElementById('main-subtitle').textContent = t.mainSubtitle;
+            
+            // Update section titles
+            document.getElementById('params-title').textContent = t.paramsTitle;
+            document.getElementById('results-title').textContent = t.resultsTitle;
+            
+            // Update form labels
+            document.getElementById('model-size-label').textContent = t.modelSizeLabel;
+            document.getElementById('quantization-label').textContent = t.quantizationLabel;
+            document.getElementById('target-speed-label').textContent = t.targetSpeedLabel;
+            document.getElementById('context-length-label').textContent = t.contextLengthLabel;
+            document.getElementById('max-budget-label').textContent = t.maxBudgetLabel;
+            
+            // Update button
+            document.getElementById('calculate-btn').textContent = t.calculateBtn;
+            
+            // Update initial message
+            document.getElementById('initial-message').textContent = t.initialMessage;
+            
+            // Update model size options
+            const modelSelect = document.getElementById('modelSize');
+            Array.from(modelSelect.options).forEach(option => {
+                option.textContent = t.modelOptions[option.value];
+            });
+            
+            // Update context length options
+            const contextSelect = document.getElementById('contextLength');
+            Array.from(contextSelect.options).forEach(option => {
+                option.textContent = t.contextOptions[option.value];
+            });
+            
+            // Update quantization options
+            const quantSelect = document.getElementById('quantization');
+            Array.from(quantSelect.options).forEach(option => {
+                option.textContent = t.quantizationOptions[option.value];
+            });
+            
+            // Update footer texts
+            document.getElementById('footer-description').textContent = t.footerDescription;
+            document.getElementById('footer-text').textContent = t.footerText;
+        }
+
+        function calculateRequirements() {
+            const modelSize = parseInt(document.getElementById('modelSize').value);
+            const quantBits = parseInt(document.getElementById('quantization').value);
+            const targetSpeed = parseInt(document.getElementById('targetSpeed').value);
+            const contextLength = parseInt(document.getElementById('contextLength').value);
+            const maxBudget = parseInt(document.getElementById('maxBudget').value);
+
+            // Obliczenia
+            const model = modelDatabase[modelSize];
+            const quantFactor = quantizationFactors[quantBits];
+            
+            // RAM wymagany dla modelu
+            const modelRAM = Math.ceil(model.baseRAM * quantFactor);
+            
+            // Dodatkowy RAM dla kontekstu
+            const contextRAM = Math.ceil((contextLength * modelSize * quantBits) / (8 * 1024 * 1024 * 1024));
+            
+            // Całkowity RAM
+            const totalRAM = modelRAM + contextRAM + 4; // +4GB dla systemu
+            
+            // Minimalna VRAM GPU
+            const minVRAM = Math.max(8, Math.ceil(totalRAM * 0.8));
+            
+            // Wymagana przepustowość pamięci (GB/s)
+            const requiredBandwidth = targetSpeed * modelSize * quantBits / (8 * 1000);
+
+            displayResults(modelSize, quantBits, targetSpeed, totalRAM, minVRAM, requiredBandwidth, maxBudget, model.name);
+        }
+
+        function displayResults(modelSize, quantBits, targetSpeed, totalRAM, minVRAM, bandwidth, maxBudget, modelName) {
+            const resultsDiv = document.getElementById('results');
+            const t = translations[currentLanguage];
+            
+            // Rekomendacje sprzętu lokalnego
+            const localRecommendations = getLocalRecommendations(totalRAM, minVRAM, bandwidth);
+            
+            // Rekomendacje VPS
+            const vpsRecommendations = getVPSRecommendations(minVRAM, maxBudget, targetSpeed);
+            
+            resultsDiv.innerHTML = `
+                <div class="result-card">
+                    <div class="result-title">${t.requirementsFor} ${modelName}</div>
+                    <div class="result-value">${t.ram} ${totalRAM} ${t.gb}</div>
+                    <div class="result-value">${t.minVram} ${minVRAM} ${t.gb}</div>
+                    <div class="result-value">${t.bandwidth} ${bandwidth.toFixed(1)} ${t.gbPerSecond}</div>
+                    <div class="result-value">${t.quantization} ${quantBits}${t.bit}</div>
+                </div>
+
+                <div class="recommendation">
+                    <h3>${t.localRecommendations}</h3>
+                    ${localRecommendations.map(rec => `
+                        <div class="recommendation-item">
+                            <strong>${rec.name}</strong>
+                            <span class="price-badge">${rec.price}${t.euro}</span>
+                            <br>
+                            <small>${rec.specs}</small>
+                            <br>
+                            <small>${t.expectedSpeed} ~${rec.expectedSpeed} ${t.tokensPerSecond}</small>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="recommendation">
+                    <h3>${t.vpsRecommendations} ${maxBudget}${t.euro}${t.monthSuffix})</h3>
+                    ${vpsRecommendations.length > 0 ? 
+                        vpsRecommendations.map(vps => `
+                            <div class="recommendation-item">
+                                <strong>${vps.name}</strong>
+                                                                 <span class="price-badge">${vps.price}${t.euro}${t.monthSuffix}</span>
+                                <br>
+                                                                 <small>${t.gpu} ${vps.gpu} (${vps.vram}${t.gb} ${t.vram})</small>
+                                <br>
+                                <small>${t.performance} ${vps.performance}%</small>
+                            </div>
+                        `).join('') :
+                        `<div class="warning">${t.noVpsOptions}</div>`
+                    }
+                </div>
+
+                ${totalRAM > 32 ? 
+                    `<div class="warning">${t.highRamWarning}</div>` : 
+                    ''
+                }
+            `;
+        }
+
+        function getLocalRecommendations(totalRAM, minVRAM, bandwidth) {
+            const t = translations[currentLanguage];
+            const recommendations = [];
+            
+            if (totalRAM <= 16 && minVRAM <= 12) {
+                recommendations.push({
+                    name: t.budgetConfig,
+                    price: "800-1200",
+                    specs: "RTX 3060 12GB, 16GB RAM DDR4, i5-12400F",
+                    expectedSpeed: Math.min(25, 15 + (12 - minVRAM) * 2)
+                });
+            }
+            
+            if (totalRAM <= 32 && minVRAM <= 16) {
+                recommendations.push({
+                    name: t.mediumConfig,
+                    price: "1500-2000",
+                    specs: "RTX 4060 Ti 16GB, 32GB RAM DDR5, i7-13700F",
+                    expectedSpeed: Math.min(35, 20 + (16 - minVRAM) * 2)
+                });
+            }
+            
+            if (totalRAM <= 64) {
+                recommendations.push({
+                    name: t.highConfig,
+                    price: "3000-4000",
+                    specs: "RTX 4080 16GB, 64GB RAM DDR5, i9-13900K",
+                    expectedSpeed: Math.min(50, 30 + (16 - minVRAM) * 2)
+                });
+            }
+            
+            return recommendations;
+        }
+
+        function getVPSRecommendations(minVRAM, maxBudget, targetSpeed) {
+            return vpsProviders
+                .filter(vps => vps.vram >= minVRAM && vps.price <= maxBudget)
+                .sort((a, b) => b.performance - a.performance)
+                .slice(0, 3);
+        }
+
+        // Create floating particles
+        function createParticles() {
+            const particleCount = 15;
+            for (let i = 0; i < particleCount; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 6 + 's';
+                    particle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                    document.body.appendChild(particle);
+                    
+                    setTimeout(() => {
+                        particle.remove();
+                    }, 8000);
+                }, i * 400);
+            }
+        }
+
+        // Continuously create particles
+        setInterval(createParticles, 6000);
+
+        // Automatyczne obliczenie przy ładowaniu strony
+        window.onload = function() {
+            updateLanguageContent();
+            calculateRequirements();
+            createParticles();
+        };
+    </script>
+</body>
+</html>
